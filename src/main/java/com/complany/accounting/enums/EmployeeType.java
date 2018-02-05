@@ -1,34 +1,46 @@
 package com.complany.accounting.enums;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import lombok.Getter;
+import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.AllArgsConstructor;
 
-@Getter
+@AllArgsConstructor
 public enum EmployeeType {
-    CREW_MEMBER("Crew member", 1),
-    TEAM_LEADER("Team leader", 2),
-    GROUP_LEADER("Group member", 3),
-    PROJECT_MANAGER("Project manager", 4),
-    VP_RND("Vice president of R&D", 5),
-    VP("Vice president", 6),
-    CEO("CEO", 7);
+    CREW_MEMBER(1),
+    TEAM_LEADER(2),
+    GROUP_LEADER(3),
+    PROJECT_MANAGER(4),
+    VP_RND(5),
+    VP(6),
+    CEO(7);
 
-    private final String name;
-    private final Integer order;
+    private final Integer id;
 
-    EmployeeType(String name, Integer order) {
-        this.name = name;
-        this.order = order;
+    @JsonValue
+    public Integer getId() {
+        return id;
     }
 
     @JsonCreator
-    public static EmployeeType fromInt(Integer i) {
-        for (EmployeeType type : EmployeeType.values()) {
-            if (type.getOrder().equals(i)) {
+    public static EmployeeType getById(Integer id) {
+        for (EmployeeType type : values()) {
+            if (type.getId().equals(id)) {
                 return type;
             }
         }
 
-        throw new IllegalArgumentException();
+        return null;
+    }
+
+    public EmployeeType getNext() {
+        Integer nextId = getId() + 1;
+
+        return EmployeeType.getById(nextId);
+    }
+
+    public EmployeeType getPrev() {
+        Integer nextId = getId() - 1;
+
+        return EmployeeType.getById(nextId);
     }
 }

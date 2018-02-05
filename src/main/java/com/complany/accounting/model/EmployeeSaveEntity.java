@@ -1,7 +1,7 @@
 package com.complany.accounting.model;
 
-import com.complany.accounting.enums.EmployeeStatus;
 import com.complany.accounting.enums.EmployeeType;
+import com.complany.accounting.validation.ValidateEnumerationMinMax;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,9 +11,7 @@ import org.hibernate.validator.constraints.NotBlank;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class Employee {
-
-    private Long id;
+public class EmployeeSaveEntity {
 
     @NotBlank(message = "First name cannot be blank")
     @Length(min = 3, max = 20, message = "Length must be between 3 and 20")
@@ -23,17 +21,8 @@ public class Employee {
     @Length(min = 3, max = 20, message = "Length must be between 3 and 20")
     private String lastName;
 
+
+//    @ValidateEnumerationMinMax(min = 1, max = 7)
+    @ValidateEnumerationMinMax()
     private EmployeeType employeeType;
-
-    private EmployeeStatus employeeStatus;
-
-    public static Employee initFromSaveEntity(EmployeeSaveEntity employeeSaveEntity) {
-        Employee employee = new Employee();
-
-        employee.setFirstName(employeeSaveEntity.getFirstName());
-        employee.setLastName(employeeSaveEntity.getLastName());
-        employee.setEmployeeType(employeeSaveEntity.getEmployeeType());
-
-        return employee;
-    }
 }

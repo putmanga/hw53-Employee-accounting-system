@@ -1,13 +1,12 @@
-package com.complany.accounting.component.impl;
+package com.complany.accounting.repository.impl;
 
-import com.complany.accounting.component.EmployeeRepository;
 import com.complany.accounting.model.Employee;
+import com.complany.accounting.repository.EmployeeRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Repository;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -19,13 +18,11 @@ import java.util.Properties;
 @Repository
 public class EmployeeRepositoryImpl implements EmployeeRepository {
 
-    private List<Employee> employees;
     private static ObjectMapper objectMapper = new ObjectMapper();
     private Path storagePath;
 
     public EmployeeRepositoryImpl() {
         getStoragePath();
-        initList();
     }
 
     @SneakyThrows
@@ -34,34 +31,41 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
         InputStream is = EmployeeRepositoryImpl.class.getResourceAsStream("/application.properties");
         properties.load(is);
 
-        storagePath = Paths.get(properties.getProperty("storage.path"), properties.getProperty("storage.name"));
+        storagePath = Paths.get(properties.getProperty("storage.path"));
     }
 
-    private void initList() {
+    private List<Employee> getList() {
+        List<Employee> employees;
         try {
             employees = objectMapper.readValue(storagePath.toFile(), new TypeReference<List<Employee>>() {});
         } catch (IOException e) {
             employees = new ArrayList<>();
         }
+
+        return employees;
+    }
+
+    @SneakyThrows
+    private void saveList(List<Employee> employees) {
+        objectMapper.writeValue(storagePath.toFile(), employees);
     }
 
     @Override
-    public int getSize() {
-        return employees.size();
-    }
-
-    @Override
-    public void add(Employee employee) {
+    public void save(Employee employee) {
+        List<Employee> employees = getList();
         employees.add(employee);
+        saveList(employees);
     }
 
     @Override
-    public Employee set(Employee employee) {
+    public Employee update(Employee employee) {
+        List<Employee> employees = getList();
         Long id = employee.getId();
 
         for (int i = 0; i < employees.size(); i++) {
             if (employees.get(i).getId().equals(id)) {
                 employees.set(i, employee);
+                saveList(employees);
                 return employee;
             }
         }
@@ -71,6 +75,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
 
     @Override
     public Employee get(Long id) {
+        List<Employee> employees = getList();
         return employees.stream()
                 .filter(e -> e.getId().equals(id))
                 .findAny()
@@ -79,16 +84,6 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
 
     @Override
     public List<Employee> getAll() {
-        return new ArrayList<>(employees);
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        File file = storagePath.toFile();
-        if (!file.exists()) {
-            //noinspection ResultOfMethodCallIgnored
-            file.createNewFile();
-        }
-        objectMapper.writeValue(storagePath.toFile(), employees);
+        return getList();
     }
 }
